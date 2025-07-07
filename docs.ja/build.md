@@ -1,87 +1,87 @@
-# Build llama.cpp locally
+# llama.cpp をローカルでビルドする
 
-The main product of this project is the `llama` library. Its C-style interface can be found in [include/llama.h](../include/llama.h).
+このプロジェクトの主力製品は `llama` ライブラリです。C スタイルのインターフェースは [include/llama.h](../include/llama.h) にあります。
 
-The project also includes many example programs and tools using the `llama` library. The examples range from simple, minimal code snippets to sophisticated sub-projects such as an OpenAI-compatible HTTP server.
+このプロジェクトには、`llama` ライブラリを使用した多くのサンプルプログラムとツールも含まれています。サンプルは、シンプルで最小限のコードスニペットから、OpenAI 互換の HTTP サーバーなどの高度なサブプロジェクトまで多岐にわたります。
 
-**To get the Code:**
+**コードを取得するには:**
 
 ```bash
 git clone https://github.com/ggml-org/llama.cpp
 cd llama.cpp
 ```
 
-The following sections describe how to build with different backends and options.
+次のセクションでは、さまざまなバックエンドとオプションを使用してビルドする方法について説明します。
 
 ## CPU Build
 
-Build llama.cpp using `CMake`:
+`CMake` を使用して llama.cpp をビルドします。
 
 ```bash
 cmake -B build
 cmake --build build --config Release
 ```
 
-**Notes**:
+**注**:
 
-- For faster compilation, add the `-j` argument to run multiple jobs in parallel, or use a generator that does this automatically such as Ninja. For example, `cmake --build build --config Release -j 8` will run 8 jobs in parallel.
-- For faster repeated compilation, install [ccache](https://ccache.dev/)
-- For debug builds, there are two cases:
+- コンパイルを高速化するには、`-j` 引数を追加して複数のジョブを並列実行するか、Ninja などの自動生成ツールを使用してください。例えば、`cmake --build build --config Release -j 8` は 8 つのジョブを並列実行します。
+- 繰り返しコンパイルを高速化するには、[ccache](https://ccache.dev/) をインストールしてください。
+- デバッグビルドの場合、以下の 2 つのケースがあります。
 
-    1. Single-config generators (e.g. default = `Unix Makefiles`; note that they just ignore the `--config` flag):
+    1. 単一構成ジェネレーター (例: default = `Unix Makefiles`。`--config` フラグは無視されることに注意してください):
 
        ```bash
        cmake -B build -DCMAKE_BUILD_TYPE=Debug
        cmake --build build
        ```
 
-    2. Multi-config generators (`-G` param set to Visual Studio, XCode...):
+    2. マルチ構成ジェネレーター (`-G` パラメータを Visual Studio、XCode などに設定):
 
        ```bash
        cmake -B build -G "Xcode"
        cmake --build build --config Debug
        ```
 
-    For more details and a list of supported generators, see the [CMake documentation](https://cmake.org/cmake/help/latest/manual/cmake-generators.7.html).
-- For static builds, add `-DBUILD_SHARED_LIBS=OFF`:
+    詳細とサポートされているジェネレーターのリストについては、[CMake のドキュメント](https://cmake.org/cmake/help/latest/manual/cmake-generators.7.html) を参照してください。
+- 静的ビルドの場合は、`-DBUILD_SHARED_LIBS=OFF` を追加します。
   ```
   cmake -B build -DBUILD_SHARED_LIBS=OFF
   cmake --build build --config Release
   ```
 
-- Building for Windows (x86, x64 and arm64) with MSVC or clang as compilers:
-    - Install Visual Studio 2022, e.g. via the [Community Edition](https://visualstudio.microsoft.com/vs/community/). In the installer, select at least the following options (this also automatically installs the required additional tools like CMake,...):
-    - Tab Workload: Desktop-development with C++
-    - Tab Components (select quickly via search): C++-_CMake_ Tools for Windows, _Git_ for Windows, C++-_Clang_ Compiler for Windows, MS-Build Support for LLVM-Toolset (clang)
-    - Please remember to always use a Developer Command Prompt / PowerShell for VS2022 for git, build, test
-    - For Windows on ARM (arm64, WoA) build with:
+- MSVC または clang をコンパイラとして Windows (x86、x64、arm64) 向けにビルドする場合:
+    - Visual Studio 2022 をインストールします (例: [Community Edition](https://visualstudio.microsoft.com/vs/community/))。インストーラーで、少なくとも以下のオプションを選択してください (CMake などの必要な追加ツールも自動的にインストールされます):
+    - タブ ワークロード: C++ を使用したデスクトップ開発
+    - タブ コンポーネント (検索で素早く選択): C++-_CMake_ ツール (Windows 用)、_Git_ (Windows 用)、C++-_Clang_ コンパイラ (Windows 用)、LLVM ツールセット (clang) 用の MS-Build サポート
+    - Git、ビルド、テストには、VS2022 の開発者コマンドプロンプト / PowerShell を必ず使用してください。
+    - ARM 版 Windows (arm64、WoA) の場合は、以下のコマンドでビルドします:
     ```bash
     cmake --preset arm64-windows-llvm-release -D GGML_OPENMP=OFF
     cmake --build build-arm64-windows-llvm-release
     ```
-    Building for arm64 can also be done with the MSVC compiler with the build-arm64-windows-MSVC preset, or the standard CMake build instructions. However, note that the MSVC compiler does not support inline ARM assembly code, used e.g. for the accelerated Q4_0_N_M CPU kernels.
+    arm64 向けのビルドは、build-arm64-windows-MSVC プリセットを指定した MSVC コンパイラ、または標準の CMake ビルド手順でも実行できます。ただし、MSVC コンパイラは、例えばアクセラレーションされた Q4_0_N_M CPU カーネルで使用されるインライン ARM アセンブリコードをサポートしていないことに注意してください。
 
-    For building with ninja generator and clang compiler as default:
+    ninja ジェネレータと clang コンパイラをデフォルトとしてビルドする場合：
       -set path:set LIB=C:\Program Files (x86)\Windows Kits\10\Lib\10.0.22621.0\um\x64;C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.41.34120\lib\x64\uwp;C:\Program Files (x86)\Windows Kits\10\Lib\10.0.22621.0\ucrt\x64
       ```bash
       cmake --preset x64-windows-llvm-release
       cmake --build build-x64-windows-llvm-release
       ```
-- Curl usage is enabled by default and can be turned off with `-DLLAMA_CURL=OFF`. Otherwise you need to install development libraries for libcurl.
+- curlの使用はデフォルトで有効になっていますが、`-DLLAMA_CURL=OFF`で無効にできます。無効にしない場合は、libcurlの開発ライブラリをインストールする必要があります。
 
-## BLAS Build
+## BLAS ビルド
 
-Building the program with BLAS support may lead to some performance improvements in prompt processing using batch sizes higher than 32 (the default is 512). Using BLAS doesn't affect the generation performance. There are currently several different BLAS implementations available for build and use:
+BLAS サポート付きでプログラムをビルドすると、バッチサイズが 32 より大きい場合（デフォルトは 512）にプロンプ​​ト処理のパフォーマンスが若干向上する可能性があります。BLAS を使用しても生成パフォーマンスには影響しません。現在、ビルドして使用できる BLAS 実装が複数あります。
 
 ### Accelerate Framework
 
-This is only available on Mac PCs and it's enabled by default. You can just build using the normal instructions.
+これはMac PCでのみ利用可能で、デフォルトで有効になっています。通常の手順でビルドできます。
 
 ### OpenBLAS
 
-This provides BLAS acceleration using only the CPU. Make sure to have OpenBLAS installed on your machine.
+CPUのみを使用したBLASアクセラレーションを提供します。お使いのマシンにOpenBLASがインストールされていることを確認してください。
 
-- Using `CMake` on Linux:
+- Linuxで`CMake`を使用する場合：
 
     ```bash
     cmake -B build -DGGML_BLAS=ON -DGGML_BLAS_VENDOR=OpenBLAS
@@ -90,62 +90,61 @@ This provides BLAS acceleration using only the CPU. Make sure to have OpenBLAS i
 
 ### BLIS
 
-Check [BLIS.md](./backend/BLIS.md) for more information.
+詳細については、[BLIS.md](./backend/BLIS.md) を参照してください。
 
 ### Intel oneMKL
 
-Building through oneAPI compilers will make avx_vnni instruction set available for intel processors that do not support avx512 and avx512_vnni. Please note that this build config **does not support Intel GPU**. For Intel GPU support, please refer to [llama.cpp for SYCL](./backend/SYCL.md).
+oneAPI コンパイラーを使用してビルドすると、avx512 および avx512_vnni をサポートしていない Intel プロセッサーでも avx_vnni 命令セットが利用できるようになります。このビルド構成は **Intel GPU をサポートしていません** のでご注意ください。Intel GPU のサポートについては、[llama.cpp for SYCL](./backend/SYCL.md) を参照してください。
 
-- Using manual oneAPI installation:
-  By default, `GGML_BLAS_VENDOR` is set to `Generic`, so if you already sourced intel environment script and assign `-DGGML_BLAS=ON` in cmake, the mkl version of Blas will automatically been selected. Otherwise please install oneAPI and follow the below steps:
+- oneAPI の手動インストールを使用する場合:
+  デフォルトでは、`GGML_BLAS_VENDOR` は `Generic` に設定されています。そのため、Intel 環境スクリプトを既にソースコードとして読み込み、cmake で `-DGGML_BLAS=ON` を指定している場合は、Blas の mkl バージョンが自動的に選択されます。それ以外の場合は、oneAPI をインストールし、以下の手順に従ってください。
     ```bash
     source /opt/intel/oneapi/setvars.sh # You can skip this step if  in oneapi-basekit docker image, only required for manual installation
     cmake -B build -DGGML_BLAS=ON -DGGML_BLAS_VENDOR=Intel10_64lp -DCMAKE_C_COMPILER=icx -DCMAKE_CXX_COMPILER=icpx -DGGML_NATIVE=ON
     cmake --build build --config Release
     ```
 
-- Using oneAPI docker image:
-  If you do not want to source the environment vars and install oneAPI manually, you can also build the code using intel docker container: [oneAPI-basekit](https://hub.docker.com/r/intel/oneapi-basekit). Then, you can use the commands given above.
+- oneAPI Dockerイメージの使用：
+  環境変数をsourceしてoneAPIを手動でインストールしたくない場合は、Intel Dockerコンテナ[oneAPI-basekit](https://hub.docker.com/r/intel/oneapi-basekit)を使用してコードをビルドすることもできます。その後、上記のコマンドを使用できます。
 
-Check [Optimizing and Running LLaMA2 on Intel® CPU](https://www.intel.com/content/www/us/en/content-details/791610/optimizing-and-running-llama2-on-intel-cpu.html) for more information.
+詳細については、[Intel® CPU上でのLLaMA2の最適化と実行](https://www.intel.com/content/www/us/en/content-details/791610/optimizing-and-running-llama2-on-intel-cpu.html)をご覧ください。
 
-### Other BLAS libraries
+### その他のBLASライブラリ
 
-Any other BLAS library can be used by setting the `GGML_BLAS_VENDOR` option. See the [CMake documentation](https://cmake.org/cmake/help/latest/module/FindBLAS.html#blas-lapack-vendors) for a list of supported vendors.
+`GGML_BLAS_VENDOR`オプションを設定することで、その他のBLASライブラリも使用できます。サポートされているベンダーの一覧については、[CMakeドキュメント](https://cmake.org/cmake/help/latest/module/FindBLAS.html#blas-lapack-vendors)をご覧ください。
 
-## Metal Build
+## Metal ビルド
 
-On MacOS, Metal is enabled by default. Using Metal makes the computation run on the GPU.
-To disable the Metal build at compile time use the `-DGGML_METAL=OFF` cmake option.
+macOS では、Metal がデフォルトで有効になっています。Metal を使用すると、計算は GPU 上で実行されます。
+コンパイル時に Metal ビルドを無効にするには、cmake オプション `-DGGML_METAL=OFF` を使用します。
 
-When built with Metal support, you can explicitly disable GPU inference with the `--n-gpu-layers 0` command-line argument.
+Metal サポート付きでビルドした場合は、コマンドライン引数 `--n-gpu-layers 0` で GPU 推論を明示的に無効にできます。
 
 ## SYCL
 
-SYCL is a higher-level programming model to improve programming productivity on various hardware accelerators.
+SYCLは、様々なハードウェアアクセラレータにおけるプログラミングの生産性を向上させる高水準プログラミングモデルです。
 
-llama.cpp based on SYCL is used to **support Intel GPU** (Data Center Max series, Flex series, Arc series, Built-in GPU and iGPU).
+SYCLベースのllama.cppは、**Intel GPU**（Data Center Maxシリーズ、Flexシリーズ、Arcシリーズ、内蔵GPU、iGPU）をサポートするために使用されます。
 
-For detailed info, please refer to [llama.cpp for SYCL](./backend/SYCL.md).
+詳細については、[llama.cpp for SYCL](./backend/SYCL.md)を参照してください。
 
 ## CUDA
 
-This provides GPU acceleration using an NVIDIA GPU. Make sure to have the [CUDA toolkit](https://developer.nvidia.com/cuda-toolkit) installed.
+NVIDIA GPUを使用したGPUアクセラレーションを提供します。[CUDAツールキット](https://developer.nvidia.com/cuda-toolkit)がインストールされていることを確認してください。
 
-#### Download directly from NVIDIA
-You may find the official downloads here: [NVIDIA developer site](https://developer.nvidia.com/cuda-downloads).
+#### NVIDIA から直接ダウンロードしてください
+公式ダウンロードは、[NVIDIA 開発者サイト](https://developer.nvidia.com/cuda-downloads) から入手できます。
 
+#### Fedora Toolbox コンテナ内でコンパイルおよび実行
+Fedora [ツールボックス コンテナ](https://containertoolbx.org/) 内で CUDA ツールキットをセットアップするための [ガイド](./backend/CUDA-FEDORA.md) もご用意しています。
 
-#### Compile and run inside a Fedora Toolbox Container
-We also have a [guide](./backend/CUDA-FEDORA.md) for setting up CUDA toolkit in a Fedora [toolbox container](https://containertoolbx.org/).
-
-**Recommended for:**
-- ***Necessary*** for users of [Atomic Desktops for Fedora](https://fedoraproject.org/atomic-desktops/); such as: [Silverblue](https://fedoraproject.org/atomic-desktops/silverblue/) and [Kinoite](https://fedoraproject.org/atomic-desktops/kinoite/).
-  - (there are no supported CUDA packages for these systems)
-- ***Necessary*** for users that have a host that is not a: [Supported Nvidia CUDA Release Platform](https://developer.nvidia.com/cuda-downloads).
-  - (for example, you may have [Fedora 42 Beta](https://fedoramagazine.org/announcing-fedora-linux-42-beta/) as your your host operating system)
-- ***Convenient*** For those running [Fedora Workstation](https://fedoraproject.org/workstation/) or [Fedora KDE Plasma Desktop](https://fedoraproject.org/spins/kde), and want to keep their host system clean.
-- *Optionally* toolbox packages are available: [Arch Linux](https://archlinux.org/), [Red Hat Enterprise Linux >= 8.5](https://www.redhat.com/en/technologies/linux-platforms/enterprise-linux), or [Ubuntu](https://ubuntu.com/download)
+**推奨対象:**
+- [Silverblue](https://fedoraproject.org/atomic-desktops/silverblue/) や [Kinoite](https://fedoraproject.org/atomic-desktops/kinoite/) などの [Atomic Desktops for Fedora](https://fedoraproject.org/atomic-desktops/) のユーザーには***必須***です。
+  - (これらのシステムではサポートされている CUDA パッケージはありません)
+- [サポートされている Nvidia CUDA リリース プラットフォーム](https://developer.nvidia.com/cuda-downloads) 以外のホストを使用しているユーザーには***必須***です。
+  - (例えば、ホストOSとして[Fedora 42 Beta](https://fedoramagazine.org/announce-fedora-linux-42-beta/)を使用している場合)
+- ***便利*** [Fedora Workstation](https://fedoraproject.org/workstation/)または[Fedora KDE Plasma Desktop](https://fedoraproject.org/spins/kde)をご利用で、ホストシステムをクリーンな状態に保ちたい場合。
+- *オプション* ツールボックスパッケージが利用可能です: [Arch Linux](https://archlinux.org/)、[Red Hat Enterprise Linux >= 8.5](https://www.redhat.com/en/technologies/linux-platforms/enterprise-linux)、または[Ubuntu](https://ubuntu.com/download)
 
 
 ### Compilation
@@ -154,16 +153,16 @@ cmake -B build -DGGML_CUDA=ON
 cmake --build build --config Release
 ```
 
-### Override Compute Capability Specifications
+### コンピューティング能力仕様のオーバーライド
 
-If `nvcc` cannot detect your gpu, you may get compile-warnings such as:
+`nvcc` が GPU を検出できない場合、次のようなコンパイル警告が表示されることがあります。
  ```text
 nvcc warning : Cannot find valid GPU for '-arch=native', default arch is used
 ```
 
-To override the `native` GPU detection:
+ネイティブ GPU 検出を無効にするには:
 
-#### 1. Take note of the `Compute Capability` of your NVIDIA devices: ["CUDA: Your GPU Compute > Capability"](https://developer.nvidia.com/cuda-gpus).
+#### 1. NVIDIA デバイスの「コンピューティング能力」を確認します: ["CUDA: お使いの GPU コンピューティング > 能力"](https://developer.nvidia.com/cuda-gpus)。
 
 ```text
 GeForce RTX 4090      8.9
@@ -171,44 +170,44 @@ GeForce RTX 3080 Ti   8.6
 GeForce RTX 3070      8.6
 ```
 
-#### 2. Manually list each varying `Compute Capability` in the `CMAKE_CUDA_ARCHITECTURES` list.
+#### 2. `CMAKE_CUDA_ARCHITECTURES` リストに、各異なる `Compute Capability` を手動でリストします。
 
 ```bash
 cmake -B build -DGGML_CUDA=ON -DCMAKE_CUDA_ARCHITECTURES="86;89"
 ```
 
-### Runtime CUDA environmental variables
+### ランタイムCUDA環境変数
 
-You may set the [cuda environmental variables](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#env-vars) at runtime.
+実行時に[CUDA環境変数](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#env-vars)を設定できます。
 
 ```bash
 # Use `CUDA_VISIBLE_DEVICES` to hide the first compute device.
 CUDA_VISIBLE_DEVICES="-0" ./build/bin/llama-server --model /srv/models/llama.gguf
 ```
 
-### Unified Memory
+### ユニファイドメモリ
 
-The environment variable `GGML_CUDA_ENABLE_UNIFIED_MEMORY=1` can be used to enable unified memory in Linux. This allows swapping to system RAM instead of crashing when the GPU VRAM is exhausted. In Windows this setting is available in the NVIDIA control panel as `System Memory Fallback`.
+Linuxでは、環境変数「GGML_CUDA_ENABLE_UNIFIED_MEMORY=1」を使用してユニファイドメモリを有効化できます。これにより、GPU VRAMが枯渇した際にクラッシュするのではなく、システムRAMへのスワップが可能になります。Windowsでは、この設定はNVIDIAコントロールパネルの「システムメモリフォールバック」で利用できます。
 
-### Performance Tuning
+### パフォーマンスチューニング
 
-The following compilation options are also available to tweak performance:
+以下のコンパイルオプションもパフォーマンス調整に利用できます。
 
 | Option                        | Legal values           | Default | Description                                                                                                                                                                                                                                                                             |
 |-------------------------------|------------------------|---------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| GGML_CUDA_FORCE_MMQ           | Boolean                | false   | Force the use of custom matrix multiplication kernels for quantized models instead of FP16 cuBLAS even if there is no int8 tensor core implementation available (affects V100, CDNA and RDNA3+). MMQ kernels are enabled by default on GPUs with int8 tensor core support. With MMQ force enabled, speed for large batch sizes will be worse but VRAM consumption will be lower.                       |
-| GGML_CUDA_FORCE_CUBLAS        | Boolean                | false   | Force the use of FP16 cuBLAS instead of custom matrix multiplication kernels for quantized models                                                                                                                                                                                       |
-| GGML_CUDA_F16                 | Boolean                | false   | If enabled, use half-precision floating point arithmetic for the CUDA dequantization + mul mat vec kernels and for the q4_1 and q5_1 matrix matrix multiplication kernels. Can improve performance on relatively recent GPUs.                                                           |
-| GGML_CUDA_PEER_MAX_BATCH_SIZE | Positive integer       | 128     | Maximum batch size for which to enable peer access between multiple GPUs. Peer access requires either Linux or NVLink. When using NVLink enabling peer access for larger batch sizes is potentially beneficial.                                                                         |
-| GGML_CUDA_FA_ALL_QUANTS       | Boolean                | false   | Compile support for all KV cache quantization type (combinations) for the FlashAttention CUDA kernels. More fine-grained control over KV cache size but compilation takes much longer.                                                                                                  |
+| GGML_CUDA_FORCE_MMQ | Boolean | false | int8 テンソル コア実装が利用できない場合でも、量子化モデルに対して FP16 cuBLAS ではなくカスタム行列乗算カーネルの使用を強制します (V100、CDNA、RDNA3+ に影響します)。MMQ カーネルは、int8 テンソル コアをサポートする GPU ではデフォルトで有効になっています。MMQ 強制を有効にすると、大きなバッチ サイズの速度は低下しますが、VRAM の消費量は少なくなります。 |
+| GGML_CUDA_FORCE_CUBLAS | Boolean | false | 量子化モデルに対して、カスタム行列乗算カーネルではなく FP16 cuBLAS の使用を強制します |
+| GGML_CUDA_F16 | Boolean | false |有効にすると、CUDA 逆量子化 + mul mat vec カーネルと q4_1 および q5_1 行列乗算カーネルに半精度浮動小数点演算を使用します。比較的新しい GPU ではパフォーマンスが向上する可能性があります。 |
+| GGML_CUDA_PEER_MAX_BATCH_SIZE | Positive integer | 128 | 複数の GPU 間のピア アクセスを有効にする最大バッチ サイズ。ピア アクセスには Linux または NVLink が必要です。NVLink を使用する場合は、より大きなバッチ サイズでピア アクセスを有効にすると効果的です。 |
+| GGML_CUDA_FA_ALL_QUANTS | Boolean | false | FlashAttention CUDA カーネルのすべての KV キャッシュ量子化タイプ (組み合わせ) のコンパイル サポート。KV キャッシュ サイズをより細かく制御できますが、コンパイル時間は大幅に長くなります。 |
 
 ## MUSA
 
-This provides GPU acceleration using a Moore Threads GPU. Make sure to have the [MUSA SDK](https://developer.mthreads.com/musa/musa-sdk) installed.
+Moore Threads GPUを使用したGPUアクセラレーションを提供します。[MUSA SDK](https://developer.mthreads.com/musa/musa-sdk)がインストールされていることを確認してください。
 
-#### Download directly from Moore Threads
+#### Moore Threads から直接ダウンロードしてください
 
-You may find the official downloads here: [Moore Threads developer site](https://developer.mthreads.com/sdk/download/musa).
+公式ダウンロードは、[Moore Threads 開発者サイト](https://developer.mthreads.com/sdk/download/musa) から入手できます。
 
 ### Compilation
 
@@ -217,68 +216,67 @@ cmake -B build -DGGML_MUSA=ON
 cmake --build build --config Release
 ```
 
-#### Override Compute Capability Specifications
+#### コンピューティング機能の仕様をオーバーライドする
 
-By default, all supported compute capabilities are enabled. To customize this behavior, you can specify the `MUSA_ARCHITECTURES` option in the CMake command:
+デフォルトでは、サポートされているすべてのコンピューティング機能が有効になっています。この動作をカスタマイズするには、CMake コマンドで `MUSA_ARCHITECTURES` オプションを指定します。
 
 ```bash
 cmake -B build -DGGML_MUSA=ON -DMUSA_ARCHITECTURES="21"
 cmake --build build --config Release
 ```
 
-This configuration enables only compute capability `2.1` (MTT S80) during compilation, which can help reduce compilation time.
+この構成では、コンパイル中にコンピューティング機能 `2.1` (MTT S80) のみが有効になり、コンパイル時間を短縮できます。
 
-#### Compilation options
+#### コンパイルオプション
 
-Most of the compilation options available for CUDA should also be available for MUSA, though they haven't been thoroughly tested yet.
+CUDA で利用可能なコンパイルオプションのほとんどは MUSA でも利用できるはずですが、まだ十分にテストされていません。
 
-- For static builds, add `-DBUILD_SHARED_LIBS=OFF` and `-DCMAKE_POSITION_INDEPENDENT_CODE=ON`:
+- 静的ビルドの場合は、`-DBUILD_SHARED_LIBS=OFF` と `-DCMAKE_POSITION_INDEPENDENT_CODE=ON` を追加します。
   ```
   cmake -B build -DGGML_MUSA=ON \
     -DBUILD_SHARED_LIBS=OFF -DCMAKE_POSITION_INDEPENDENT_CODE=ON
   cmake --build build --config Release
   ```
 
-### Runtime MUSA environmental variables
+### 実行時のMUSA環境変数
 
-You may set the [musa environmental variables](https://docs.mthreads.com/musa-sdk/musa-sdk-doc-online/programming_guide/Z%E9%99%84%E5%BD%95/) at runtime.
+実行時に[musa環境変数](https://docs.mthreads.com/musa-sdk/musa-sdk-doc-online/programming_guide/Z%E9%99%84%E5%BD%95/)を設定できます。
 
 ```bash
 # Use `MUSA_VISIBLE_DEVICES` to hide the first compute device.
 MUSA_VISIBLE_DEVICES="-0" ./build/bin/llama-server --model /srv/models/llama.gguf
 ```
 
-### Unified Memory
+### ユニファイドメモリ
 
-The environment variable `GGML_CUDA_ENABLE_UNIFIED_MEMORY=1` can be used to enable unified memory in Linux. This allows swapping to system RAM instead of crashing when the GPU VRAM is exhausted.
+Linuxでは、環境変数「GGML_CUDA_ENABLE_UNIFIED_MEMORY=1」を使用してユニファイドメモリを有効化できます。これにより、GPU VRAMが枯渇した際にクラッシュするのではなく、システムRAMへのスワップが可能になります。
 
 ## HIP
 
-This provides GPU acceleration on HIP-supported AMD GPUs.
-Make sure to have ROCm installed.
-You can download it from your Linux distro's package manager or from here: [ROCm Quick Start (Linux)](https://rocm.docs.amd.com/projects/install-on-linux/en/latest/tutorial/quick-start.html#rocm-install-quick).
+HIP対応AMD GPUでGPUアクセラレーションを提供します。
+ROCmがインストールされていることを確認してください。
+Linuxディストリビューションのパッケージマネージャー、または[ROCmクイックスタート（Linux）](https://rocm.docs.amd.com/projects/install-on-linux/en/latest/tutorial/quick-start.html#rocm-install-quick)からダウンロードできます。
 
-- Using `CMake` for Linux (assuming a gfx1030-compatible AMD GPU):
+- Linuxで`CMake`を使用する場合（gfx1030互換AMD GPUを想定）：
   ```bash
   HIPCXX="$(hipconfig -l)/clang" HIP_PATH="$(hipconfig -R)" \
       cmake -S . -B build -DGGML_HIP=ON -DAMDGPU_TARGETS=gfx1030 -DCMAKE_BUILD_TYPE=Release \
       && cmake --build build --config Release -- -j 16
   ```
 
-  To enhance flash attention performance on RDNA3+ or CDNA architectures, you can utilize the rocWMMA library by enabling the `-DGGML_HIP_ROCWMMA_FATTN=ON` option. This requires rocWMMA headers to be installed on the build system.
+  RDNA3+ または CDNA アーキテクチャにおけるフラッシュアテンションのパフォーマンスを向上させるには、`-DGGML_HIP_ROCWMMA_FATTN=ON` オプションを有効にすることで rocWMMA ライブラリを利用できます。ただし、ビルドシステムに rocWMMA ヘッダーがインストールされている必要があります。
 
-  The rocWMMA library is included by default when installing the ROCm SDK using the `rocm` meta package provided by AMD. Alternatively, if you are not using the meta package, you can install the library using the `rocwmma-dev` or `rocwmma-devel` package, depending on your system's package manager.
+  AMD が提供する `rocm` メタパッケージを使用して ROCm SDK をインストールすると、rocWMMA ライブラリはデフォルトで含まれます。メタパッケージを使用していない場合は、システムのパッケージマネージャーに応じて `rocwmma-dev` または `rocwmma-devel` パッケージを使用してライブラリをインストールできます。
 
-  As an alternative, you can manually install the library by cloning it from the official [GitHub repository](https://github.com/ROCm/rocWMMA), checkout the corresponding version tag (e.g. `rocm-6.2.4`) and set `-DCMAKE_CXX_FLAGS="-I<path/to/rocwmma>/library/include/"` in CMake. This also works under Windows despite not officially supported by AMD.
+  代わりに、公式の[GitHubリポジトリ](https://github.com/ROCm/rocWMMA)からライブラリをクローンし、対応するバージョンタグ（例：`rocm-6.2.4`）をチェックアウトし、CMakeで`-DCMAKE_CXX_FLAGS="-I<path/to/rocwmma>/library/include/"`を設定することで、手動でライブラリをインストールすることもできます。これはAMDによる公式サポートはありませんが、Windowsでも動作します。
 
-  Note that if you get the following error:
+  以下のエラーが表示された場合は、ご注意ください:
+
   ```
   clang: error: cannot find ROCm device library; provide its path via '--rocm-path' or '--rocm-device-lib-path', or pass '-nogpulib' to build without ROCm device library
   ```
-  Try searching for a directory under `HIP_PATH` that contains the file
-  `oclc_abi_version_400.bc`. Then, add the following to the start of the
-  command: `HIP_DEVICE_LIB_PATH=<directory-you-just-found>`, so something
-  like:
+  `HIP_PATH` 配下のディレクトリで `oclc_abi_version_400.bc` ファイルがあるディレクトリを探してみてください。次に、コマンドの先頭に以下の行を追加します: `HIP_DEVICE_LIB_PATH=<directory-you-just-found>`、つまり以下のようになります:
+
   ```bash
   HIPCXX="$(hipconfig -l)/clang" HIP_PATH="$(hipconfig -p)" \
   HIP_DEVICE_LIB_PATH=<directory-you-just-found> \
@@ -286,22 +284,24 @@ You can download it from your Linux distro's package manager or from here: [ROCm
       && cmake --build build -- -j 16
   ```
 
-- Using `CMake` for Windows (using x64 Native Tools Command Prompt for VS, and assuming a gfx1100-compatible AMD GPU):
+- Windows 用の `CMake` を使用する (VS 用の x64 ネイティブ ツール コマンド プロンプトを使用し、gfx1100 互換の AMD GPU を想定):
+
   ```bash
   set PATH=%HIP_PATH%\bin;%PATH%
   cmake -S . -B build -G Ninja -DAMDGPU_TARGETS=gfx1100 -DGGML_HIP=ON -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Release
   cmake --build build
   ```
-  Make sure that `AMDGPU_TARGETS` is set to the GPU arch you want to compile for. The above example uses `gfx1100` that corresponds to Radeon RX 7900XTX/XT/GRE. You can find a list of targets [here](https://llvm.org/docs/AMDGPUUsage.html#processors)
-  Find your gpu version string by matching the most significant version information from `rocminfo | grep gfx | head -1 | awk '{print $2}'` with the list of processors, e.g. `gfx1035` maps to `gfx1030`.
+
+  `AMDGPU_TARGETS` が、コンパイル対象の GPU アーキテクチャに設定されていることを確認してください。上記の例では、Radeon RX 7900XTX/XT/GRE に対応する `gfx1100` を使用しています。ターゲットのリストは [こちら](https://llvm.org/docs/AMDGPUUsage.html#processors) で確認できます。
+  `rocminfo | grep gfx | head -1 | awk '{print $2}'` で得られる最も重要なバージョン情報とプロセッサのリストを照合することで、GPU バージョン文字列を検索できます。例: `gfx1035` は `gfx1030` にマッピングされます。
 
 
-The environment variable [`HIP_VISIBLE_DEVICES`](https://rocm.docs.amd.com/en/latest/understand/gpu_isolation.html#hip-visible-devices) can be used to specify which GPU(s) will be used.
-If your GPU is not officially supported you can use the environment variable [`HSA_OVERRIDE_GFX_VERSION`] set to a similar GPU, for example 10.3.0 on RDNA2 (e.g. gfx1030, gfx1031, or gfx1035) or 11.0.0 on RDNA3.
+環境変数 [`HIP_VISIBLE_DEVICES`](https://rocm.docs.amd.com/en/latest/understand/gpu_isolation.html#hip-visible-devices) を使用して、使用する GPU を指定できます。
+お使いの GPU が公式にサポートされていない場合は、環境変数 [`HSA_OVERRIDE_GFX_VERSION`] を同様の GPU に設定して使用できます。たとえば、RDNA2 では 10.3.0 (例: gfx1030、gfx1031、gfx1035)、RDNA3 では 11.0.0 です。
 
-### Unified Memory
+### 統合メモリ
 
-On Linux it is possible to use unified memory architecture (UMA) to share main memory between the CPU and integrated GPU by setting environment variable `GGML_CUDA_ENABLE_UNIFIED_MEMORY=1`. However, this hurts performance for non-integrated GPUs (but enables working with integrated GPUs).
+Linuxでは、環境変数「GGML_CUDA_ENABLE_UNIFIED_MEMORY=1」を設定することで、統合メモリアーキテクチャ（UMA）を使用してCPUと統合GPU間でメインメモリを共有できます。ただし、非統合GPUのパフォーマンスは低下します（ただし、統合GPUでは動作が可能になります）。
 
 ## Vulkan
 
@@ -309,11 +309,11 @@ On Linux it is possible to use unified memory architecture (UMA) to share main m
 
 ### w64devkit
 
-Download and extract [`w64devkit`](https://github.com/skeeto/w64devkit/releases).
+[`w64devkit`](https://github.com/skeeto/w64devkit/releases) をダウンロードして解凍します。
 
-Download and install the [`Vulkan SDK`](https://vulkan.lunarg.com/sdk/home#windows) with the default settings.
+[`Vulkan SDK`](https://vulkan.lunarg.com/sdk/home#windows) をデフォルト設定でダウンロードしてインストールします。
 
-Launch `w64devkit.exe` and run the following commands to copy Vulkan dependencies:
+`w64devkit.exe` を起動し、以下のコマンドを実行して Vulkan の依存関係をコピーします。
 ```sh
 SDK_VERSION=1.3.283.0
 cp /VulkanSDK/$SDK_VERSION/Bin/glslc.exe $W64DEVKIT_HOME/bin/
@@ -328,7 +328,7 @@ EOF
 
 ```
 
-Switch into the `llama.cpp` directory and build using CMake.
+`llama.cpp` ディレクトリに切り替えて、CMake を使用してビルドします。
 ```sh
 cmake -B build -DGGML_VULKAN=ON
 cmake --build build --config Release
@@ -336,29 +336,29 @@ cmake --build build --config Release
 
 ### Git Bash MINGW64
 
-Download and install [`Git-SCM`](https://git-scm.com/downloads/win) with the default settings
+[`Git-SCM`](https://git-scm.com/downloads/win) をデフォルト設定でダウンロードしてインストールしてください。
 
-Download and install [`Visual Studio Community Edition`](https://visualstudio.microsoft.com/) and make sure you select `C++`
+[`Visual Studio Community Edition`](https://visualstudio.microsoft.com/) をダウンロードしてインストールし、`C++` を選択してください。
 
-Download and install [`CMake`](https://cmake.org/download/) with the default settings
+[`CMake`](https://cmake.org/download/) をデフォルト設定でダウンロードしてインストールしてください。
 
-Download and install the [`Vulkan SDK`](https://vulkan.lunarg.com/sdk/home#windows) with the default settings.
+[`Vulkan SDK`](https://vulkan.lunarg.com/sdk/home#windows) をデフォルト設定でダウンロードしてインストールしてください。
 
-Go into your `llama.cpp` directory and right click, select `Open Git Bash Here` and then run the following commands
+`llama.cpp` ディレクトリに移動し、右クリックして「Open Git Bash Here」を選択し、以下のコマンドを実行してください。
 
 ```
 cmake -B build -DGGML_VULKAN=ON
 cmake --build build --config Release
 ```
 
-Now you can load the model in conversation mode using `Vulkan`
+これで、`Vulkan`を使用して会話モードでモデルをロードできるようになりました。
 
 ```sh
 build/bin/Release/llama-cli -m "[PATH TO MODEL]" -ngl 100 -c 16384 -t 10 -n -2 -cnv
 ```
 
 ### MSYS2
-Install [MSYS2](https://www.msys2.org/) and then run the following commands in a UCRT terminal to install dependencies.
+[MSYS2](https://www.msys2.org/) をインストールし、UCRT ターミナルで次のコマンドを実行して依存関係をインストールします。
 ```sh
 pacman -S git \
     mingw-w64-ucrt-x86_64-gcc \
@@ -367,15 +367,15 @@ pacman -S git \
     mingw-w64-ucrt-x86_64-shaderc
 ```
 
-Switch into the `llama.cpp` directory and build using CMake.
+`llama.cpp` ディレクトリに切り替えて、CMake を使用してビルドします。
 ```sh
 cmake -B build -DGGML_VULKAN=ON
 cmake --build build --config Release
 ```
 
-**With docker**:
+**Docker の場合**:
 
-You don't need to install Vulkan SDK. It will be installed inside the container.
+Vulkan SDK をインストールする必要はありません。コンテナ内にインストールされます。
 
 ```sh
 # Build the image
@@ -385,11 +385,11 @@ docker build -t llama-cpp-vulkan --target light -f .devops/vulkan.Dockerfile .
 docker run -it --rm -v "$(pwd):/app:Z" --device /dev/dri/renderD128:/dev/dri/renderD128 --device /dev/dri/card1:/dev/dri/card1 llama-cpp-vulkan -m "/app/models/YOUR_MODEL_FILE" -p "Building a website can be done in 10 simple steps:" -n 400 -e -ngl 33
 ```
 
-**Without docker**:
+**Docker なし**:
 
-Firstly, you need to make sure you have installed [Vulkan SDK](https://vulkan.lunarg.com/doc/view/latest/linux/getting_started_ubuntu.html)
+まず、[Vulkan SDK](https://vulkan.lunarg.com/doc/view/latest/linux/getting_started_ubuntu.html) がインストールされていることを確認する必要があります。
 
-For example, on Ubuntu 22.04 (jammy), use the command below:
+例えば、Ubuntu 22.04 (jammy) では、以下のコマンドを使用します。
 
 ```bash
 wget -qO - https://packages.lunarg.com/lunarg-signing-key-pub.asc | apt-key add -
@@ -400,11 +400,11 @@ apt-get install -y vulkan-sdk
 vulkaninfo
 ```
 
-Alternatively your package manager might be able to provide the appropriate libraries.
-For example for Ubuntu 22.04 you can install `libvulkan-dev` instead.
-For Fedora 40, you can install `vulkan-devel`, `glslc` and `glslang` packages.
+あるいは、パッケージマネージャーが適切なライブラリを提供している場合もあります。
+例えば、Ubuntu 22.04 の場合は、代わりに `libvulkan-dev` をインストールできます。
+Fedora 40 の場合は、`vulkan-devel`、`glslc`、`glslang` パッケージをインストールできます。
 
-Then, build llama.cpp using the cmake command below:
+次に、以下の cmake コマンドを使用して llama.cpp をビルドします。
 
 ```bash
 cmake -B build -DGGML_VULKAN=1
@@ -417,60 +417,67 @@ cmake --build build --config Release
 ```
 
 ## CANN
-This provides NPU acceleration using the AI cores of your Ascend NPU. And [CANN](https://www.hiascend.com/en/software/cann) is a hierarchical APIs to help you to quickly build AI applications and service based on Ascend NPU.
+これは、Ascend NPUのAIコアを利用したNPUアクセラレーションを提供します。[CANN](https://www.hiascend.com/en/software/cann)は、Ascend NPUをベースにしたAIアプリケーションやサービスを迅速に構築するための階層型APIです。
 
-For more information about Ascend NPU in [Ascend Community](https://www.hiascend.com/en/).
+Ascend NPUの詳細については、[Ascend Community](https://www.hiascend.com/en/)をご覧ください。
 
-Make sure to have the CANN toolkit installed. You can download it from here: [CANN Toolkit](https://www.hiascend.com/developer/download/community/result?module=cann)
+CANNツールキットがインストールされていることを確認してください。[CANN Toolkit](https://www.hiascend.com/developer/download/community/result?module=cann)からダウンロードできます。
 
-Go to `llama.cpp` directory and build using CMake.
+`llama.cpp`ディレクトリに移動し、CMakeを使用してビルドしてください。
 ```bash
 cmake -B build -DGGML_CANN=on -DCMAKE_BUILD_TYPE=release
 cmake --build build --config release
 ```
 
-You can test with:
+次の方法でテストできます:
 
 ```bash
 ./build/bin/llama-cli -m PATH_TO_MODEL -p "Building a website can be done in 10 steps:" -ngl 32
 ```
 
-If the following info is output on screen, you are using `llama.cpp` with the CANN backend:
+次の情報が画面に出力される場合、CANN バックエンドで `llama.cpp` を使用しています:
+
 ```bash
 llm_load_tensors:       CANN model buffer size = 13313.00 MiB
 llama_new_context_with_model:       CANN compute buffer size =  1260.81 MiB
 ```
 
-For detailed info, such as model/device supports, CANN install, please refer to [llama.cpp for CANN](./backend/CANN.md).
+モデル/デバイスのサポート、CANN のインストールなどの詳細情報については、[CANN 用 llama.cpp](./backend/CANN.md) を参照してください。
 
 ## Arm® KleidiAI™
-KleidiAI is a library of optimized microkernels for AI workloads, specifically designed for Arm CPUs. These microkernels enhance performance and can be enabled for use by the CPU backend.
+KleidiAIは、Arm CPU向けに特別に設計された、AIワークロード向けに最適化されたマイクロカーネルのライブラリです。これらのマイクロカーネルはパフォーマンスを向上させ、CPUバックエンドで使用可能にすることができます。
 
-To enable KleidiAI, go to the llama.cpp directory and build using CMake
+KleidiAIを有効にするには、llama.cppディレクトリに移動し、CMakeを使用してビルドしてください。
+
 ```bash
 cmake -B build -DGGML_CPU_KLEIDIAI=ON
 cmake --build build --config Release
 ```
-You can verify that KleidiAI is being used by running
+
+KleidiAIが使用されているかどうかを確認するには、以下を実行します。
+
 ```bash
 ./build/bin/llama-cli -m PATH_TO_MODEL -p "What is a car?"
 ```
-If KleidiAI is enabled, the ouput will contain a line similar to:
+
+KleidiAI が有効になっている場合、出力には次のような行が含まれます:
+
 ```
 load_tensors: CPU_KLEIDIAI model buffer size =  3474.00 MiB
 ```
-KleidiAI's microkernels implement optimized tensor operations using Arm CPU features such as dotprod, int8mm and SME. llama.cpp selects the most efficient kernel based on runtime CPU feature detection. However, on platforms that support SME, you must manually enable SME microkernels by setting the environment variable `GGML_KLEIDIAI_SME=1`.
 
-Depending on your build target, other higher priority backends may be enabled by default. To ensure the CPU backend is used, you must disable the higher priority backends either at compile time, e.g. -DGGML_METAL=OFF, or during run-time using the command line option `--device none`.
+KleidiAI のマイクロカーネルは、dotprod、int8mm、SME などの Arm CPU 機能を使用して最適化されたテンソル演算を実装します。llama.cpp は、実行時の CPU 機能検出に基づいて最も効率的なカーネルを選択します。ただし、SME をサポートするプラットフォームでは、環境変数 `GGML_KLEIDIAI_SME=1` を設定して、SME マイクロカーネルを手動で有効にする必要があります。
+
+ビルドターゲットによっては、他の優先度の高いバックエンドがデフォルトで有効になっている場合があります。CPU バックエンドを確実に使用するには、コンパイル時（例: -DGGML_METAL=OFF）または実行時にコマンドラインオプション `--device none` を使用して、優先度の高いバックエンドを無効にする必要があります。
 
 ## OpenCL
 
-This provides GPU acceleration through OpenCL on recent Adreno GPU.
-More information about OpenCL backend can be found in [OPENCL.md](./backend/OPENCL.md) for more information.
+これは、最新の Adreno GPU 上で OpenCL を介して GPU アクセラレーションを提供します。
+OpenCL バックエンドの詳細については、[OPENCL.md](./backend/OPENCL.md) を参照してください。
 
 ### Android
 
-Assume NDK is available in `$ANDROID_NDK`. First, install OpenCL headers and ICD loader library if not available,
+NDKが`$ANDROID_NDK`で利用可能であると仮定します。まず、OpenCLヘッダーとICDローダーライブラリが利用できない場合はインストールします。
 
 ```sh
 mkdir -p ~/dev/llm
@@ -495,7 +502,7 @@ ninja && \
 cp libOpenCL.so $ANDROID_NDK/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android
 ```
 
-Then build llama.cpp with OpenCL enabled,
+次にOpenCLを有効にしてllama.cppをビルドします。
 
 ```sh
 cd ~/dev/llm
@@ -516,7 +523,7 @@ ninja
 
 ### Windows Arm64
 
-First, install OpenCL headers and ICD loader library if not available,
+まず、OpenCLヘッダーとICDローダーライブラリがない場合はインストールします。
 
 ```powershell
 mkdir -p ~/dev/llm
@@ -541,7 +548,7 @@ cmake .. -G Ninja `
 cmake --build . --target install
 ```
 
-Then build llama.cpp with OpenCL enabled,
+次にOpenCLを有効にしてllama.cppをビルドします。
 
 ```powershell
 cmake .. -G Ninja `
@@ -555,16 +562,16 @@ ninja
 
 ## Android
 
-To read documentation for how to build on Android, [click here](./android.md)
+Android 上でビルドする方法についてのドキュメントを読むには、[ここをクリック](./android.md)
 
 ## IBM Z & LinuxONE
 
-To read documentation for how to build on IBM Z & LinuxONE, [click here](./build-s390x.md)
+IBM Z および LinuxONE 上でのビルド方法に関するドキュメントを読むには、[ここをクリック](./build-s390x.md)
 
-## Notes about GPU-accelerated backends
+## GPU アクセラレーション対応バックエンドに関する注意事項
 
-The GPU may still be used to accelerate some parts of the computation even when using the `-ngl 0` option. You can fully disable GPU acceleration by using `--device none`.
+`-ngl 0` オプションを使用している場合でも、計算の一部を高速化するために GPU が使用される場合があります。`--device none` を使用すると、GPU アクセラレーションを完全に無効にできます。
 
-In most cases, it is possible to build and use multiple backends at the same time. For example, you can build llama.cpp with both CUDA and Vulkan support by using the `-DGGML_CUDA=ON -DGGML_VULKAN=ON` options with CMake. At runtime, you can specify which backend devices to use with the `--device` option. To see a list of available devices, use the `--list-devices` option.
+ほとんどの場合、複数のバックエンドを同時にビルドして使用できます。例えば、CMake で `-DGGML_CUDA=ON -DGGML_VULKAN=ON` オプションを使用すると、CUDA と Vulkan の両方をサポートする llama.cpp をビルドできます。実行時には、`--device` オプションを使用して、使用するバックエンドデバイスを指定できます。使用可能なデバイスの一覧を表示するには、`--list-devices` オプションを使用します。
 
-Backends can be built as dynamic libraries that can be loaded dynamically at runtime. This allows you to use the same llama.cpp binary on different machines with different GPUs. To enable this feature, use the `GGML_BACKEND_DL` option when building.
+バックエンドは、実行時に動的にロードできる動的ライブラリとしてビルドできます。これにより、同じ llama.cpp バイナリを、異なる GPU を搭載した複数のマシンで使用できます。この機能を有効にするには、ビルド時に `GGML_BACKEND_DL` オプションを使用します。
