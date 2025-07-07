@@ -52,6 +52,7 @@ debug
 !build-info.sh
 !build.zig
 !docs/build.md
+!docs.ja/build*.md
 /libllama.so
 /llama-*
 /vulkan-shaders-gen
