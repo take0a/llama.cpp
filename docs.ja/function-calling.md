@@ -3,26 +3,26 @@
 [chat.h](../common/chat.h) (https://github.com/ggml-org/llama.cpp/pull/9639) adds support for [OpenAI-style function calling](https://platform.openai.com/docs/guides/function-calling) and is used in:
 - `llama-server` when started w/ `--jinja` flag
 
-## Universal support w/ Native & Generic handlers
+##ネイティブおよび汎用ハンドラによるユニバーサルサポート
 
-Function calling is supported for all models (see https://github.com/ggml-org/llama.cpp/pull/9639):
+すべてのモデルで関数呼び出しがサポートされています（https://github.com/ggml-org/llama.cpp/pull/9639 を参照）。
 
-- Native tool call formats supported:
-  - Llama 3.1 / 3.3 (including builtin tools support - tool names for `wolfram_alpha`, `web_search` / `brave_search`, `code_interpreter`), Llama 3.2
-  - Functionary v3.1 / v3.2
-  - Hermes 2/3, Qwen 2.5
-  - Qwen 2.5 Coder
-  - Mistral Nemo
-  - Firefunction v2
-  - Command R7B
-  - DeepSeek R1 (WIP / seems reluctant to call any tools?)
+- ネイティブツール呼び出し形式をサポート：
+    - Llama 3.1 / 3.3（組み込みツールのサポートを含む - `wolfram_alpha`、`web_search` / `brave_search`、`code_interpreter` のツール名）、Llama 3.2
+    - Functionary v3.1 / v3.2
+    - Hermes 2/3、Qwen 2.5
+    - Qwen 2.5 Coder
+    - Mistral Nemo
+    - Firefunction v2
+    - Command R7B
+    - DeepSeek R1（開発中 / ツール呼び出しを渋っている模様）
 
-- Generic tool call is supported when the template isn't recognized by native format handlers (you'll see `Chat format: Generic` in the logs).
-  - Use `--chat-template-file` to override the template when appropriate (see examples below)
-  - Generic support may consume more tokens and be less efficient than a model's native format.
+- テンプレートがネイティブ形式ハンドラで認識されない場合、汎用ツール呼び出しがサポートされます（ログに「Chat format: Generic」と表示されます）。
+    - 必要に応じて `--chat-template-file` を使用してテンプレートを上書きします (以下の例を参照)。
+    - 汎用サポートでは、モデルのネイティブ形式よりも多くのトークンが消費され、効率が低下する可能性があります。
 
 <details>
-<summary>Show some common templates and which format handler they use</summary>
+<summary>一般的なテンプレートと、それらが使用するフォーマットハンドラーをいくつか示します。</summary>
 
 | Template | Format |
 |----------|--------|
@@ -267,7 +267,7 @@ Function calling is supported for all models (see https://github.com/ggml-org/ll
 | xwen-team-Xwen-72B-Chat.jinja | Hermes 2 Pro |
 | xwen-team-Xwen-7B-Chat.jinja | Hermes 2 Pro |
 
-This table can be generated with:
+このテーブルは次のように生成できます:
 
 ```bash
 ./build/bin/test-chat ../minja/build/tests/*.jinja 2>/dev/null
@@ -275,11 +275,11 @@ This table can be generated with:
 
 </details>
 
-# Usage - need tool-aware Jinja template
+# 使用方法 - ツール対応の Jinja テンプレートが必要
 
-First, start a server with any model, but make sure it has a tools-enabled template: you can verify this by inspecting the `chat_template` or `chat_template_tool_use` properties in `http://localhost:8080/props`).
+まず、任意のモデルでサーバーを起動します。ただし、ツール対応のテンプレートがインストールされていることを確認してください。ツール対応のテンプレートが含まれているかどうかは、`http://localhost:8080/props` の `chat_template` または `chat_template_tool_use` プロパティで確認できます。
 
-Here are some models known to work (w/ chat template override when needed):
+動作が確認されているモデルをいくつかご紹介します（必要に応じてチャットテンプレートをオーバーライドできます）。
 
 ```shell
 # Native support:
@@ -319,15 +319,15 @@ llama-server --jinja -fa -hf bartowski/gemma-2-2b-it-GGUF:Q8_0
 llama-server --jinja -fa -hf bartowski/c4ai-command-r-v01-GGUF:Q2_K
 ```
 
-To get the official template from original HuggingFace repos, you can use [scripts/get_chat_template.py](../scripts/get_chat_template.py) (see examples invocations in [models/templates/README.md](../models/templates/README.md))
+オリジナルの HuggingFace リポジトリから公式テンプレートを取得するには、[scripts/get_chat_template.py](../scripts/get_chat_template.py) を使用できます ([models/templates/README.md](../models/templates/README.md) の呼び出し例を参照してください)
 
 > [!TIP]
-> If there is no official `tool_use` Jinja template, you may want to set `--chat-template chatml` to use a default that works with many models (YMMV!), or write your own (e.g. we provide a custom [llama-cpp-deepseek-r1.jinja](../models/templates/llama-cpp-deepseek-r1.jinja) for DeepSeek R1 distills)
+> 公式の `tool_use` Jinja テンプレートがない場合は、`--chat-template chatml` を設定して、多くのモデルで機能するデフォルトを使用するか (YMMV!)、独自のテンプレートを作成することができます (例: DeepSeek R1 蒸留用にカスタムの [llama-cpp-deepseek-r1.jinja](../models/templates/llama-cpp-deepseek-r1.jinja) を提供しています)
 
 > [!CAUTION]
-> Beware of extreme KV quantizations (e.g. `-ctk q4_0`), they can substantially degrade the model's tool calling performance.
+> 極端な KV 量子化 (例: `-ctk q4_0`) には注意してください。モデルのツール呼び出しパフォーマンスが大幅に低下する可能性があります。
 
-Test in CLI (or with any library / software that can use OpenAI-compatible API backends):
+CLI (または OpenAI 互換の API バックエンドを使用できる任意のライブラリ/ソフトウェア) でテストします:
 
 ```bash
 curl http://localhost:8080/v1/chat/completions -d '{
